@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>LexDB - Lexicographic Data Database</title>
+    <!-- Import Materialize CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <!-- Import jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+        /* Set the width of the SPARQL card to match other cards */
+        #sparql {
+            width: 500px;
+        }
+
+        /* Make the results scrollable */
+        #results {
+            overflow-y: scroll;
+            height: 100px; /* Adjust as needed */
+        }
+
+        /* Create a blue glow effect */
+        .blue-glow {
+            animation: glow 2s ease-out;
+            box-shadow: 0 0 5px #00f, 0 0 10px #00f, 0 0 15px #00f, 0 0 20px #00f;
+        }
+
+        /* Define the glow animation */
+        @keyframes glow {
+            from {
+                box-shadow: 0 0 5px #00f, 0 0 10px #00f, 0 0 15px #00f, 0 0 20px #00f;
+            }
+
+            to {
+                box-shadow: none;
+            }
+        }
+    </style>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        table, th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        </style>
+        
+</head>
+
+<body>
+    <div id="welcome-user" style="position: fixed; top: 10px; right: 10px; display: none;">
+        <h6>Welcome <span id="username-welcome"></span>!</h6>
+    </div>
+    
+    <div class="container" style="width: 90%;"> <!-- Adjusted to 90% to give gap on both sides of the screen -->
+        <h1 class="center-align teal-text">LexDB</h1>
+        <div id="welcome">
+            <h5 class="center-align grey-text">Welcome to LexDB, the Lexicographic Data Database</h5>
+            <h6 class="center-align blue-text">You can upload language data in batch form below.</h6>
+        </div>
+        <div class="row" style="margin-bottom: 0;">
+
+                    <!-- Batch Upload Card -->
+ <div class="download" style="display: none;">
+     <a href="/download_db_dump" class="btn waves-effect waves-light teal" download>Download Database Dump</a>
+ </div>
+
+<!-- SPARQL Query Card -->
+<div id="sparql" class="card blue-grey darken-1" style="margin-top:20px; display:none;">
+    <div class="card-content white-text">
+        <span class="card-title">SPARQL Query</span>
+        <form id="sparql-form">
+            <div class="input-field">
+                <input type="text" name="query" id="query" required class="validate">
+                <label for="query">Enter your SPARQL query:</label>
+            </div>
+            <button type="submit" class="btn waves-effect waves-light teal">Run Query</button>
+        </form>
+        <div id="query-results" class="input-field">
+            <textarea id="results" class="materialize-textarea"></textarea>
+            <label for="results">Results:</label>
+        </div>
+    </div>
+</div>
+
+<!-- NEW CODE ENDS: SPARQL Query Interface -->
+
+<!-- Batch Upload Card -->
+<div id="upload" style="width:500px; display:none;">
+    <div class="card blue-grey darken-1" id="upload-card" style="display: inline-block;">
+        <div class="card-content white-text">
+            <span class="card-title">Batch Upload</span>
+            <form id="upload-form">
+                <div class="input-field">
+                    <input type="number" name="batch_size" id="batch_size" required class="validate">
+                    <label for="batch_size">Batch Size:</label>
+                </div>
+                <div class="input-field">
+                    <input type="text" name="language" id="language" required class="validate">
+                    <label for="language">Language:</label>
+                </div>
+                <button type="submit" class="btn waves-effect waves-light teal">Upload</button>
+            </form>
+            <div id="upload-message"></div>
+        </div>
+    </div>
+</div>
+
+
+            <!-- Login Section -->
+            <div class="col s7" style="padding: 20px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.1); border-radius: 10px; background-color: #e0e0e0;">
+                <h2 class="center-align teal-text">Login to LexDB</h2>
+                <form id="login-form">
+                    <div class="input-field">
+                        <input type="text" name="username" id="username" required>
+                        <label for="username">Username</label>
+                    </div>
+                    <div class="input-field">
+                        <input type="password" name="password" id="password" required>
+                        <label for="password">Password</label>
+                    </div>
+                    <button type="submit" class="btn waves-effect waves-light teal">Login</button>
+                    <div id="login-message"></div>
+                </form>
+            </div>
+            <div class="col s1"></div>
+        
+            <!-- Registration Section -->
+            <div class="col s4" style="padding: 20px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.1); border-radius: 10px; background-color: #d7ccc8;">
+                <h2 class="center-align brown-text">Register</h2>
+                <form id="register-form">
+                    <div class="input-field">
+                        <input type="email" name="email" id="email" required>
+                        <label for="email">Email</label>
+                    </div>
+                    <div class="input-field">
+                        <input type="text" name="username" id="register-username" required>
+                        <label for="register-username">Username</label>
+                    </div>
+                    <div class="input-field">
+                        <input type="password" name="password" id="register-password" required>
+                        <label for="register-password">Password</label>
+                    </div>
+                    <button type="submit" class="btn waves-effect waves-light brown lighten-1">Register</button>
+                    <div id="register-message"></div>
+                </form>
+            </div>
+            
+        </div>
+        
+      
+
+
+
+    </div>
+
+    <!-- Import Materialize JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+      
+        $('#login-form').submit(function (e) {
+            e.preventDefault();
+
+            // Retrieve entered credentials
+            var enteredUsername = $('#username').val();
+            var enteredPassword = $('#password').val();
+
+            // Send a POST request to the server to verify the credentials
+            $.post('/login', { username: enteredUsername, password: enteredPassword }, function (response) {
+                if (response === "Logged in successfully!") {
+                    $('#login-message').text("Login Successful! Redirecting...");
+                    $('#login-container').hide();
+   
+                    // Optionally, redirect to another page or show the user's dashboard
+                    // location.href = "/dashboard"; 
+                    $('#login-message').text("Login Successful! Redirecting...");
+    
+                // Hide Login and Registration sections
+                $('.col.s7').hide();
+                $('.col.s1').hide();
+                $('.col.s4').hide();
+                $('#upload').show();
+                $('#welcome').show();
+                $('.col.s12.m6').show();
+                $('#sparql').show();
+                $('.download').show()
+
+                // Display welcome message with the entered username
+                $('#username-welcome').text(enteredUsername);
+                $('#welcome-user').show();
+                } else {
+                    $('#login-message').text("Incorrect username or password!");
+                }
+            });
+        });
+
+            $('#register-form').submit(function(e) {
+                    e.preventDefault();
+                        
+                    var email = $('#email').val();
+                    var username = $('#register-username').val();
+                    var password = $('#register-password').val();
+                        
+                    $.post('/register', {
+                        email: email,
+                        username: username,
+                        password: password
+                    }, function(response, status) {
+                        if (status === 200) {
+                            $('#register-message').text("Registration Successful! You can now log in.");
+                        } else {
+                            $('#register-message').text(response);
+                        }
+                    });
+                });
+
+
+        // Create a function to fetch batch data and populate cards
+        function fetchBatchDataAndDisplayCards() {
+    $.get('/get_batch_data', function (data) {
+        data = JSON.parse(data);
+        for (var i = 0; i < data.length; i++) {
+            var batch = data[i];
+            var batchID = "Batch: " + batch[0];
+            var uploader = "Uploaded By: " + batch[6];
+            var uploadDate = "Date: " + new Date(batch[2]).toISOString().split('T')[0];
+            var language = "Language: " + batch[5];
+            var lexicalEntries = "Lexical Entries: " + batch[3];
+
+            var newCard = '<div class="col s12 m6" style="display:none;">' +
+                '<div class="card">' +
+                '<div class="card-content">' +
+                '<span class="card-title">' + batchID + '</span>' +
+                '<p>' + uploadDate + '</p>' +
+                '<p>' + uploader + '</p>' +
+                '<p>' + language + '</p>' +
+                '<p>' + lexicalEntries + '</p>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+
+            // Append the new card to the row containing past uploads
+            $('.row').append(newCard);
+        }
+    });
+}
+
+        // Handle form submission
+        $('#upload-form').submit(function (e) {
+    e.preventDefault(); // Prevent page refresh
+
+    // Get the batch size and language values
+    var batchSize = $('#batch_size').val();
+    var language = $('#language').val();
+
+    // Make an AJAX POST request to upload the batch
+    $.post('/batch_upload', { batch_size: batchSize, language: language }, function (response) {
+        // Handle success and error scenarios here...
+
+        // Display message after upload
+        $('#upload-message').text(response.message);
+
+        // After upload, fetch batch data and create cards again
+        fetchBatchDataAndDisplayCards();
+    });
+});
+
+        $('#sparql-form').submit(function (e) {
+    e.preventDefault();
+
+    // Retrieve entered query
+    var enteredQuery = $('#query').val();
+
+    // Send a POST request to the server to execute the query
+    $.post('/sparql', { query: enteredQuery }, function (response) {
+        // Parse JSON response
+        var data = JSON.parse(response);
+
+        // Create a HTML table from the parsed JSON
+        var table = $('<table>');
+        var thead = $('<thead>');
+        var tbody = $('<tbody>');
+        
+        // Add table headers
+        var thRow = $('<tr>');
+        data.head.vars.forEach(function(header) {
+            thRow.append($('<th>').text(header));
+        });
+        thead.append(thRow);
+
+        // Add table data
+        data.results.bindings.forEach(function(binding) {
+            var tr = $('<tr>');
+            data.head.vars.forEach(function(header) {
+                tr.append($('<td>').text(binding[header].value));
+            });
+            tbody.append(tr);
+        });
+
+        table.append(thead);
+        table.append(tbody);
+        
+        // Add table to #query-results div
+        $('#query-results').html(table);
+    });
+});
+
+        // Call the function when the page loads to populate initial data
+        fetchBatchDataAndDisplayCards();
+    </script>
+
+</body>
+
+</html>
