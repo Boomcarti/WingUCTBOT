@@ -25,13 +25,12 @@ connection = mysql.connector.connect(
     database="lexdb",
     port=3306
 )
-
+singulargram="Q110786"
 # Create a cursor object to interact with the MySQL server
 cursor = connection.cursor()
 
 # Execute the SPARQL query
 cursor.execute("SELECT * from user")
-
 userdata=cursor.fetchall()
 print("")
 print("User Data!")
@@ -43,16 +42,22 @@ class WingUCTBOT:
         self.session = requests.Session()
         cursor.execute("SELECT * FROM batchupload")
         self.batchdata = cursor.fetchall()
+        self.batchusername = ""
 
-    def record_batch_upload(self, batch_size, success_count):
-    # Get the current time
+    def record_batch_upload(self, batch_size, success_count, language):
+        # Get the current time
         now = datetime.now()
         formatted_date = now.strftime('%Y-%m-%d %H:%M:%S')
-        
-        # Insert the record
-        query = "INSERT INTO batchupload (uploadsize, successcount, timestamp) VALUES (%s, %s, %s)"
-        cursor.execute(query, (batch_size, success_count, formatted_date))
+
+        # Insert the record using self.batchusername
+        print("USERNAME: " + self.batchusername)
+        print("Language: "+ language)
+        query = "INSERT INTO batchupload (batch_upload_size, upload_success_rate, UploadDate, username,languages) VALUES (%s, %s, %s, %s,%s)"
+        cursor.execute(query, (batch_size, success_count, formatted_date, self.batchusername,language))
         connection.commit()
+        get_batch_data()
+
+        
 
 
     def uploadlexemes(self,batchsize):
@@ -121,8 +126,14 @@ class WingUCTBOT:
 
             # Extract the senses
             senses = results
-    
 
+            print("SESNSES")
+            print(senses)
+
+            print("FORMS")
+            print(forms)
+
+  
             LOGIN_TOKEN = self.session .get(url=self.url, params={
                 "action": "query",
                 "meta": "tokens",
@@ -146,48 +157,94 @@ class WingUCTBOT:
                 "format": "json"
             }).json()['query']['tokens']['csrftoken']
 
-            LEXEME_DATA = {
-                "action": "wbeditentity",
-                "new": "lexeme",
-                "data": json.dumps({
-                    "lemmas": {
-                        language_code: {
-                            "language": language_code,
-                            "value": word
-                        }
-                    },
-                    "lexicalCategory": cat,  # Shona language
-                    "language": lang  ,# Word
-                    "forms": [
-                        {
-                            "add": "",
-                            "representations": {
-                                language_code: {
-                                    "language": language_code,
-                                    "value": form_value  # This should be the string representation of the form
-                                }
-                            },
-                            "grammaticalFeatures": grammatical_feature_qid.split()  # This should be a list of Wikidata item IDs
-                        }
-                        for grammatical_feature_qid, form_value in forms
-                    ],
-                    "senses": [
-                        {   "add": "",
-                            "glosses":{
-                                language_code:{
-                                    "language": language_code,
-                                    "value": sense[0]
+            if(forms[0][1]==''):
+                LEXEME_DATA = {
+                    "action": "wbeditentity",
+                    "new": "lexeme",
+                    "data": json.dumps({
+                        "lemmas": {
+                            language_code: {
+                                "language": language_code,
+                                "value": word
+                            }
+                        },
+                        "lexicalCategory": cat,  # Shona language
+                        "language": lang  ,# Word
+                        "forms": [     
+                                           {
+                                "add": "",
+                                "representations": {
+                                    language_code: {
+                                        "language": language_code,
+                                        "value": word # This should be the string representation of the form
+                                    }
+                                },
+                                "grammaticalFeatures":[singulargram] # This should be a list of Wikidata item IDs
+                            }
+                        ],
+                        "senses": [
+                            {   "add": "",
+                                "glosses":{
+                                    language_code:{
+                                        "language": language_code,
+                                        "value": senses[0][0]
+                                    }
                                 }
                             }
-                        }
-                        for sense in senses
-                    ]
-                }),
-                "format": "json",
-                "token": CSRF_TOKEN
-            }
-
-
+                        ]
+                    }),
+                    "format": "json",
+                    "token": CSRF_TOKEN
+                }
+            else:
+                LEXEME_DATA = {
+                    "action": "wbeditentity",
+                    "new": "lexeme",
+                    "data": json.dumps({
+                        "lemmas": {
+                            language_code: {
+                                "language": language_code,
+                                "value": word
+                            }
+                        },
+                        "lexicalCategory": cat,  # Shona language
+                        "language": lang  ,# Word
+                        "forms": [
+                                           {
+                                "add": "",
+                                "representations": {
+                                    language_code: {
+                                        "language": language_code,
+                                        "value": word # This should be the string representation of the form
+                                    }
+                                },
+                                "grammaticalFeatures":[singulargram] # This should be a list of Wikidata item IDs
+                            },
+                            {
+                                "add": "",
+                                "representations": {
+                                    language_code: {
+                                        "language": language_code,
+                                        "value": forms[0][1]  # This should be the string representation of the form
+                                    }
+                                },
+                                "grammaticalFeatures": [forms[0][0]]# This should be a list of Wikidata item IDs
+                            }
+                        ],
+                        "senses": [
+                            {   "add": "",
+                                "glosses":{
+                                    language_code:{
+                                        "language": language_code,
+                                        "value": senses[0][0]
+                                    }
+                                }
+                            }
+                        ]
+                    }),
+                    "format": "json",
+                    "token": CSRF_TOKEN
+                }
 
             response = self.session.post(self.url, data=LEXEME_DATA)
             data=response.json()
@@ -249,6 +306,17 @@ print(bot.batchdata)
 def index():
     return render_template('index.html')
 
+
+def get_BatchUpload_data():
+    print("Getting batch data")
+    cursor.execute("SELECT * FROM batchupload")
+    bot.batchdata = cursor.fetchall()
+    for i in range(len(bot.batchdata)):
+        batch = list(bot.batchdata[i])
+        batch[2] = batch[2].strftime("%Y-%m-%d %H:%M:%S")  # convert datetime to string
+        bot.batchdata[i] = tuple(batch)
+    return json.dumps(bot.batchdata), 200
+
 @app.route('/get_batch_data', methods=['GET'])
 def get_batch_data():
     print("Getting batch data")
@@ -260,7 +328,6 @@ def get_batch_data():
         bot.batchdata[i] = tuple(batch)
     return json.dumps(bot.batchdata), 200
 
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -271,6 +338,7 @@ def login():
         # Check credentials
         if authenticate(username, password):
             bot.loggedin="Y"
+            bot.batchusername = username 
             return "Logged in successfully!", 200
         else:
             return "Incorrect username or password.", 401
@@ -370,16 +438,19 @@ def download_db_dump():
 def batch_upload():
     # Get the batch size from the form data
     batch_size = int(request.form['batch_size'])
+
+    language = request.form['language']
+
     
     # Call the uploadlexemes method
     success_count = bot.uploadlexemes(batch_size)  # We assume uploadlexemes will return the count of successful uploads.
     
     # Record the batch upload
-    bot.record_batch_upload(batch_size, success_count)
+    bot.record_batch_upload(batch_size, success_count, language)
     
     return 'Batch upload successful', 200
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=6100)
+    app.run(debug=True, port=8619)
 
